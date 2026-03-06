@@ -11,6 +11,7 @@ class UInputComponent;
 class USkeletalMeshComponent;
 class UCameraComponent;
 class UInputAction;
+class UWepaonDataAsset;
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
@@ -31,6 +32,10 @@ class AWeaponsTestCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
 
+	/** First person camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* WeaponMesh;
+
 protected:
 
 	/** Jump Input Action */
@@ -49,6 +54,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category ="Input")
 	class UInputAction* MouseLookAction;
 	
+	/** Jump Input Action */
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* ShootAction;
+
 public:
 	AWeaponsTestCharacter();
 
@@ -76,8 +85,16 @@ protected:
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpEnd();
 
+	void StartFiring();
+	void StopFiring();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UWepaonDataAsset* EquippedWeaponDataAsset;
+
+
 protected:
 
+	virtual void Tick(float DeltaSeconds) override;
 	/** Set up input action bindings */
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	
@@ -90,5 +107,14 @@ public:
 	/** Returns first person camera component **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+	UFUNCTION(BlueprintCallable, Category="Weapon")
+	void EquipWeapon(UWepaonDataAsset* DA);
+
+private:
+	float RecoilTime = 0.f;
+	float ShootTime = 0.0f;
+	bool bIsFiring = false;
+
+	FRotator LastCurveRotation;
 };
 

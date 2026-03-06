@@ -10,7 +10,8 @@
  * 
  */
 
-class FFloatCurve;
+class UCurveVector;
+
 UCLASS()
 class WEAPONSTEST_API UWepaonDataAsset : public UDataAsset
 {
@@ -20,9 +21,6 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMesh* Mesh;
 
-	UPROPERTY(EditDefaultsOnly)
-	FFloatCurve HorizontalRecoil;
-
-	UPROPERTY(EditDefaultsOnly)
-	FFloatCurve VerticalRecoil;
+	UPROPERTY(EditAnywhere)
+	UCurveVector* RecoilCurve;
 };

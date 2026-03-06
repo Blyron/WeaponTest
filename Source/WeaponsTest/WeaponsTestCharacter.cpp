@@ -9,6 +9,8 @@
 #include "InputActionValue.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WeaponsTest.h"
+#include "Curves/CurveVector.h"
+#include "DataAsset/WepaonDataAsset.h"
 
 AWeaponsTestCharacter::AWeaponsTestCharacter()
 {
@@ -42,6 +44,29 @@ AWeaponsTestCharacter::AWeaponsTestCharacter()
 	// Configure character movement
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 	GetCharacterMovement()->AirControl = 0.5f;
+
+	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>("WeaponMesh");
+	WeaponMesh->SetupAttachment(FirstPersonMesh);
+}
+
+void AWeaponsTestCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (!bIsFiring || !EquippedWeaponDataAsset) return;
+
+	RecoilTime += DeltaSeconds;
+
+	FVector CurveValue = EquippedWeaponDataAsset->RecoilCurve->GetVectorValue(RecoilTime);
+
+	FRotator CurveRot(CurveValue.X, CurveValue.Y, CurveValue.Z);
+
+	// delta de recoil
+	FRotator DeltaRot = CurveRot - LastCurveRotation;
+
+	WeaponMesh->AddRelativeRotation(DeltaRot);
+
+	LastCurveRotation = CurveRot;
 }
 
 void AWeaponsTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -52,6 +77,9 @@ void AWeaponsTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 		// Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AWeaponsTestCharacter::DoJumpStart);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AWeaponsTestCharacter::DoJumpEnd);
+
+		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Started, this, &AWeaponsTestCharacter::StartFiring);
+		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Completed, this, &AWeaponsTestCharacter::StopFiring);
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AWeaponsTestCharacter::MoveInput);
@@ -64,6 +92,12 @@ void AWeaponsTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	{
 		UE_LOG(LogWeaponsTest, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
+}
+
+void AWeaponsTestCharacter::EquipWeapon(UWepaonDataAsset* DA)
+{
+	WeaponMesh->SetStaticMesh(DA->Mesh);
+	EquippedWeaponDataAsset = DA;
 }
 
 
@@ -117,4 +151,16 @@ void AWeaponsTestCharacter::DoJumpEnd()
 {
 	// pass StopJumping to the character
 	StopJumping();
+}
+
+void AWeaponsTestCharacter::StartFiring()
+{
+	ShootTime = 0.0f;
+	RecoilTime = 0.0f;
+	bIsFiring = false;
+}
+
+void AWeaponsTestCharacter::StopFiring()
+{
+	bIsFiring = true;
 }

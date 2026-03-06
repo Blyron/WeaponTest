@@ -25,12 +25,6 @@ public class WeaponsTest : ModuleRules
 
 		PublicIncludePaths.AddRange(new string[] {
 			"WeaponsTest",
-			"WeaponsTest/Variant_Horror",
-			"WeaponsTest/Variant_Horror/UI",
-			"WeaponsTest/Variant_Shooter",
-			"WeaponsTest/Variant_Shooter/AI",
-			"WeaponsTest/Variant_Shooter/UI",
-			"WeaponsTest/Variant_Shooter/Weapons"
 		});
 
 		// Uncomment if you are using Slate UI
